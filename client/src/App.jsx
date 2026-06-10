@@ -71,11 +71,12 @@ function App() {
 
         {/* Top Header Overlay */}
         <div className="absolute top-4 left-4 right-4 z-[400] pointer-events-none">
-          <h1 className="text-2xl font-black italic tracking-tighter drop-shadow-md">
-            FAN<span className="text-[#00f3ff]">ATLAS</span>
-          </h1>
-          <p className="text-xs font-medium text-gray-300 drop-shadow">World Cup 2026 Fan Map</p>
-        </div>
+  <h1 className="text-2xl font-black italic tracking-tighter drop-shadow-md">
+    <span className="text-yellow-400">FAN</span>
+    <span className="text-white">ATLAS</span>
+  </h1>
+  <p className="text-xs font-medium text-gray-300 drop-shadow">World Cup 2026 Fan Map</p>
+</div>
       </div>
 
       {/* Sidebar / Leaderboard */}
