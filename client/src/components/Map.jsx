@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { fetchFansMap, deleteFan } from '../utils/api';
-import { Trash2, X, Layers } from 'lucide-react';
+import { fetchFansMap } from '../utils/api';
+import { X, Layers } from 'lucide-react';
 
 // Create a custom icon for markers
 const createCustomIcon = (fan) => {
@@ -89,9 +89,7 @@ const MapComponent = ({ onMapClick, userLocation }) => {
   const [fans, setFans] = useState([]);
   const [bounds, setBounds] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [pinToDelete, setPinToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [mapStyle, setMapStyle] = useState('dark'); // 'dark' or 'satellite'
+  const [mapStyle, setMapStyle] = useState('dark');
 
   useEffect(() => {
     if (!bounds) return;
@@ -110,36 +108,6 @@ const MapComponent = ({ onMapClick, userLocation }) => {
     window.addEventListener('fanUpdated', loadFans);
     return () => window.removeEventListener('fanUpdated', loadFans);
   }, [bounds]);
-
-  const handleDeleteClick = (fanId) => {
-    setPinToDelete(fanId);
-  };
-
-  const confirmDelete = async () => {
-    if (!pinToDelete) return;
-    setIsDeleting(true);
-    try {
-      await deleteFan(pinToDelete);
-      // Use functional state update to guarantee we're modifying the latest state
-      setFans(prevFans => prevFans.filter(f => f._id !== pinToDelete));
-      setPinToDelete(null);
-      
-      // Notify other components (like Leaderboard) to instantly refresh
-      window.dispatchEvent(new Event('fanUpdated'));
-      
-      // Re-fetch to ensure the map is perfectly in sync with the database
-      if (bounds) {
-        const data = await fetchFansMap(bounds);
-        setFans(data);
-      }
-    } catch(err) {
-      console.error("Failed to delete pin", err);
-      alert("Failed to delete pin. Please try again.");
-      setPinToDelete(null);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
 
   return (
     <>
@@ -179,20 +147,12 @@ const MapComponent = ({ onMapClick, userLocation }) => {
           icon={createCustomIcon(fan)}
         >
           <Popup className="custom-popup">
-            <div className="text-center p-1 relative">
-              <button 
-                onClick={() => handleDeleteClick(fan._id)}
-                className="absolute top-0 right-0 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors z-10 shadow-md"
-                title="Delete Pin"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
-
+            <div className="text-center p-1">
               {fan.photoUrl && (
                 <img 
                   src={fan.photoUrl} 
                   alt="Fan" 
-                  className="w-full h-32 object-cover rounded-lg mb-2 cursor-pointer border border-gray-200 mt-2 hover:opacity-90" 
+                  className="w-full h-32 object-cover rounded-lg mb-2 cursor-pointer border border-gray-200 hover:opacity-90" 
                   onClick={() => setSelectedImage(fan.photoUrl)}
                 />
               )}
@@ -233,35 +193,6 @@ const MapComponent = ({ onMapClick, userLocation }) => {
           className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl" 
           onClick={(e) => e.stopPropagation()} 
         />
-      </div>
-    )}
-
-    {/* Custom Delete Confirmation Modal */}
-    {pinToDelete && (
-      <div className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div className="bg-[#141928] border border-gray-700 p-6 rounded-2xl max-w-sm w-full shadow-2xl text-center">
-          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Trash2 className="w-8 h-8 text-red-500" />
-          </div>
-          <h3 className="text-xl font-bold text-white mb-2">Delete this pin?</h3>
-          <p className="text-gray-400 text-sm mb-6">This action cannot be undone. The pin and its photo will be permanently removed.</p>
-          <div className="flex gap-3">
-            <button 
-              onClick={() => setPinToDelete(null)}
-              disabled={isDeleting}
-              className="flex-1 px-4 py-3 bg-gray-800 text-white rounded-xl font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button 
-              onClick={confirmDelete}
-              disabled={isDeleting}
-              className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl font-bold shadow-[0_0_15px_rgba(239,68,68,0.4)] hover:bg-red-600 hover:shadow-[0_0_20px_rgba(239,68,68,0.6)] transition-all disabled:opacity-50"
-            >
-              {isDeleting ? 'Deleting...' : 'Delete'}
-            </button>
-          </div>
-        </div>
       </div>
     )}
     </>
