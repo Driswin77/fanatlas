@@ -60,7 +60,7 @@ function LocationMarker({ userLocation }) {
         className: 'user-location-marker',
         html: `<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg animate-pulse"></div>`,
         iconSize: [16, 16],
-        iconAnchor: [8, 8]
+        iconAnchor: [8, 15]
       })}
     >
     </Marker>
